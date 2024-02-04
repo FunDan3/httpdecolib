@@ -22,6 +22,8 @@ class _WebServerHandlerClass(BaseHTTPRequestHandler):
 		self.parent.on_request(get_interface(self), "get")
 	def do_POST(self):
 		self.parent.on_request(post_interface(self), "post")
+	def log_message(*args, **kwargs):
+		pass
 
 class WebServer:
 	get_functions_and_conditions_list = []
