@@ -1,6 +1,5 @@
 # Library that is supposed to ease creation of http/https server
 # Do not use this in any of your project. Its just a trash for school.
-# HTTP is fine because server is not supposed to be able to know anything private about the user
 
 import ssl
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -34,8 +33,8 @@ class WebServer:
 		self.handler.parent = self
 		self.handler = HTTPServer((ip, port), self.handler)
 		self.handler.parent = self
-	def convert_to_sll(self, certificate):
-		ssl.wrap_socket(self.handler.socket, certificate = certificate, server_side = True)
+	def convert_to_ssl(self, certfile, keyfile):
+		self.handler.socket = ssl.wrap_socket(self.handler.socket, certfile = certfile, keyfile = keyfile, server_side = True)
 	def start(self):
 		try:
 			self.handler.serve_forever()
