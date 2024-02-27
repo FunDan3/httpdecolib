@@ -18,6 +18,7 @@ class exceptions:
 class _WebServerHandlerClass(BaseHTTPRequestHandler):
 	parent = None # I am not certain should I set this or not. I think I should at least to be explicit about varaibles
 	def do_GET(self):
+		print(self.path)
 		self.parent.on_request(get_interface(self), "get")
 	def do_POST(self):
 		self.parent.on_request(post_interface(self), "post")
@@ -48,9 +49,9 @@ class WebServer:
 	def get(self, paths = None, checker_function = None):
 		def decorator(function):
 			if not paths and not checker_function:
-				raise NoConditionException(f"No conditions specified for the {function.__name__} function")
+				raise exceptions.NoConditionException(f"No conditions specified for the {function.__name__} function")
 			elif paths and checker_function:
-				raise ConditionConflictException(f"Two conditions conflict for the {function.__name__} function")
+				raise exceptions.ConditionConflictException(f"Two conditions conflict for the {function.__name__} function")
 			def wrapped_function(*args, **kwargs):
 				raise exceptions.DecoratedFunctionCallException("Functions decorated by WebServer are not supposed to be called.")
 			self.get_functions_and_conditions_list.append((function, self._deco_condition_builder(paths) if paths else checker_function))
@@ -60,9 +61,9 @@ class WebServer:
 	def post(self, paths = None, checker_function = None):
 		def decorator(function):
 			if not paths and not checker_function:
-				raise NoConditionException(f"No conditions specified for the {function.__name__} function")
+				raise exceptions.NoConditionException(f"No conditions specified for the {function.__name__} function")
 			elif paths and checker_function:
-				raise ConditionConflictException(f"Two conditions conflict for the {function.__name__} function")
+				raise exceptions.ConditionConflictException(f"Two conditions conflict for the {function.__name__} function")
 			def wrapped_function(*args, **kwargs):
 				raise exceptions.DecoratedFunctionCallException("Functions decorated by WebServer are not supposed to be called.")
 			self.post_functions_and_conditions_list.append((function, self._deco_condition_builder(paths) if paths else checker_function))
@@ -73,9 +74,12 @@ class WebServer:
 		satisfied = False
 		for function, condition in eval(f"self.{request_type}_functions_and_conditions_list"): #if eval is used it is the matter of time before it gets exploited. Surely it wouldnt be in that case...
 			if condition(interface):
-				function(interface)
+				try:
+					function(interface)
+				except Exception as e:
+					if not interface.finished:
+						interface.error(501, f"{request_type}: Server function {function.__name__} error: {str(e)}")
+					raise e
 				satisfied = True
 		if not satisfied:
-			interface.write("No function checher conditions were met")
-			interface.header("Content-Type", "text/plain")
-			interface.finish(404)
+			interface.error(404, "Not found: function checke conditions were met")

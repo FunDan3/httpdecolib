@@ -14,6 +14,7 @@ class default_request_interface:
 	_headers_to_send = None # Hashmap {HeaderName: HeaderValue}
 	path = None
 	client_address = None
+	finished = False
 	def __init__(self, handler):
 		self.handler = handler
 		self._data_to_send = b""
@@ -42,6 +43,7 @@ class default_request_interface:
 			self.handler.send_header(header, self._headers_to_send[header]) #kind of lame but I have no idea how to do otherwise
 		self.handler.end_headers()
 		self.handler.wfile.write(self._data_to_send) #send recorded data
+		self.finished = True
 	def verify(self, required_keys):
 		if type(self.json) != dict:
 			raise TypeError("Can not verify non-json data")
@@ -49,3 +51,9 @@ class default_request_interface:
 		keys.sort()
 		required_keys.sort()
 		return keys == required_keys
+	def error(self, code = 501, message = None):
+		if not message:
+			message = "Undefined error message"
+		self.write(message)
+		self.header("Content-Type", "text/plain")
+		self.finish(code)
