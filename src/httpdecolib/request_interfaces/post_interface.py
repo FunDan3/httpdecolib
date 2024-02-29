@@ -2,6 +2,7 @@ from .default_interface import default_request_interface
 import json
 
 class post_interface(default_request_interface):
+	type = "post"
 	def _parse_data(self):
 		self.data = self.handler.rfile.read(int(self.headers["Content-Length"]))
 	def jsonize(self):

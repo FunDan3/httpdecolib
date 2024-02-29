@@ -1,6 +1,7 @@
 from .default_interface import default_request_interface
 
 class get_interface(default_request_interface):
+	type = "get"
 	def _parse_data(self):
 		self.json = {}
 		if self.handler.path.count("?") > 0:
